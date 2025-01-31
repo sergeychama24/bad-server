@@ -114,10 +114,12 @@ export const getCustomers = async (
             sort[sortField as string] = sortOrder === 'desc' ? -1 : 1
         }
 
+        const MAX_LIMIT = 10 // Устанавливаем максимальное значение limit
+
         const options = {
             sort,
-            skip: (Number(page) - 1) * Number(limit),
-            limit: Number(limit),
+            skip: (Number(page) - 1) * Math.min(Number(limit), MAX_LIMIT),
+            limit: Math.min(Number(limit), MAX_LIMIT),
         }
 
         const users = await User.find(filters, null, options).populate([
