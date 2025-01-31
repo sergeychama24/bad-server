@@ -34,11 +34,24 @@ export const getOrders = async (
         const filters: FilterQuery<Partial<IOrder>> = {}
 
         if (status) {
-            if (typeof status === 'object') {
-                Object.assign(filters, status)
-            }
             if (typeof status === 'string') {
-                filters.status = status
+                const allowedStatuses = [
+                    'cancelled',
+                    'completed',
+                    'new',
+                    'delivering',
+                ]
+                if (allowedStatuses.includes(status)) {
+                    filters.status = status
+                } else {
+                    return res
+                        .status(400)
+                        .json({ error: 'Невалидное значение статуса' })
+                }
+            } else {
+                return res
+                    .status(400)
+                    .json({ error: 'Невалидный статус формата' })
             }
         }
 
