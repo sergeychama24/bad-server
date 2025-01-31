@@ -114,7 +114,7 @@ export const getCustomers = async (
             sort[sortField as string] = sortOrder === 'desc' ? -1 : 1
         }
 
-        const MAX_LIMIT = 10 // Устанавливаем максимальное значение limit
+        const MAX_LIMIT = 10
 
         const options = {
             sort,
@@ -139,7 +139,7 @@ export const getCustomers = async (
         ])
 
         const totalUsers = await User.countDocuments(filters)
-        const totalPages = Math.ceil(totalUsers / Number(limit))
+        const totalPages = Math.ceil(totalUsers / options.limit)
 
         res.status(200).json({
             customers: users,
@@ -147,7 +147,7 @@ export const getCustomers = async (
                 totalUsers,
                 totalPages,
                 currentPage: Number(page),
-                pageSize: Number(limit),
+                pageSize: options.limit,
             },
         })
     } catch (error) {
