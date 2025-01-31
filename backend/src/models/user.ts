@@ -19,6 +19,7 @@ export enum Role {
 }
 
 export interface IUser extends Document {
+    _id: Types.ObjectId
     name: string
     email: string
     password: string
@@ -139,10 +140,6 @@ userSchema.methods.generateAccessToken = function generateAccessToken() {
     const user = this
     // Создание accessToken токена возможно в контроллере авторизации
     
-    if (!user._id) {
-        throw Error
-    }
-    
     return jwt.sign(
         {
             _id: user._id.toString(),
@@ -166,7 +163,6 @@ userSchema.methods.generateRefreshToken =
         
         const refreshToken = jwt.sign(
             {
-                _id: user._id.toString(),
             },
             REFRESH_TOKEN.secret,
             {
