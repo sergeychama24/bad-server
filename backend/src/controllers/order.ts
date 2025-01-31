@@ -1,9 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import {
-    FilterQuery,
-    Error as MongooseError,
-    Types
-} from 'mongoose'
+import { FilterQuery, Error as MongooseError, Types } from 'mongoose'
 import BadRequestError from '../errors/bad-request-error'
 import NotFoundError from '../errors/not-found-error'
 import Order, { IOrder } from '../models/order'
@@ -31,6 +27,9 @@ export const getOrders = async (
             orderDateTo,
             search,
         } = req.query
+
+        const MAX_LIMIT = 10
+        const normalizedLimit = Math.min(Number(limit), MAX_LIMIT)
 
         const filters: FilterQuery<Partial<IOrder>> = {}
 
@@ -108,7 +107,7 @@ export const getOrders = async (
                     $or: searchConditions,
                 },
             })
-            
+
             filters.$or = searchConditions
         }
 
@@ -120,8 +119,8 @@ export const getOrders = async (
 
         aggregatePipeline.push(
             { $sort: sort },
-            { $skip: (Number(page) - 1) * Number(limit) },
-            { $limit: Number(limit) },
+            { $skip: (Number(page) - 1) * Number(normalizedLimit) },
+            { $limit: Number(normalizedLimit) },
             {
                 $group: {
                     _id: '$_id',
@@ -137,7 +136,7 @@ export const getOrders = async (
 
         const orders = await Order.aggregate(aggregatePipeline)
         const totalOrders = await Order.countDocuments(filters)
-        const totalPages = Math.ceil(totalOrders / Number(limit))
+        const totalPages = Math.ceil(totalOrders / Number(normalizedLimit))
 
         res.status(200).json({
             orders,
@@ -145,7 +144,7 @@ export const getOrders = async (
                 totalOrders,
                 totalPages,
                 currentPage: Number(page),
-                pageSize: Number(limit),
+                pageSize: Number(normalizedLimit),
             },
         })
     } catch (error) {
@@ -197,7 +196,7 @@ export const getOrdersCurrentUser = async (
             orders = orders.filter((order) => {
                 // eslint-disable-next-line max-len
                 const matchesProductTitle = order.products.some((product) =>
-                productIds.some(( id ) => id.equals(product._id))
+                    productIds.some((id) => id.equals(product._id))
                 )
                 // eslint-disable-next-line max-len
                 const matchesOrderNumber =
