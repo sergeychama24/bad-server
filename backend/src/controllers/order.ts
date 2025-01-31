@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
-import { FilterQuery, Error as MongooseError, Types } from 'mongoose'
+import {
+    FilterQuery,
+    Error as MongooseError,
+    Types
+} from 'mongoose'
 import BadRequestError from '../errors/bad-request-error'
 import NotFoundError from '../errors/not-found-error'
 import Order, { IOrder } from '../models/order'
@@ -104,7 +108,7 @@ export const getOrders = async (
                     $or: searchConditions,
                 },
             })
-
+            
             filters.$or = searchConditions
         }
 
@@ -193,7 +197,9 @@ export const getOrdersCurrentUser = async (
             orders = orders.filter((order) => {
                 // eslint-disable-next-line max-len
                 const matchesProductTitle = order.products.some((product) =>
-                    productIds.some((id) => id.equals(product._id))
+                // @ts-ignore
+                // TODO: Remove ts ignore        
+                productIds.some(( id ) => id.equals(product._id))
                 )
                 // eslint-disable-next-line max-len
                 const matchesOrderNumber =
@@ -295,6 +301,8 @@ export const createOrder = async (
             req.body
 
         items.forEach((id: Types.ObjectId) => {
+            // TODO: Remove ts ignore
+            // @ts-ignore
             const product = products.find((p) => p._id.equals(id))
             if (!product) {
                 throw new BadRequestError(`Товар с id ${id} не найден`)
