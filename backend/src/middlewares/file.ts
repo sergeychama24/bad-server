@@ -4,7 +4,6 @@ import path, { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import fs, { existsSync, mkdirSync } from 'fs'
 import sharp from 'sharp'
-import { fileTypeFromBuffer } from 'file-type'
 import BadRequestError from '../errors/bad-request-error'
 
 type DestinationCallback = (error: Error | null, destination: string) => void
@@ -51,7 +50,7 @@ const types = [
     'image/svg+xml',
 ]
 
-const fileFilter = async (
+const fileFilter = (
     _req: Request,
     file: Express.Multer.File,
     cb: FileFilterCallback
@@ -59,13 +58,6 @@ const fileFilter = async (
     if (!types.includes(file.mimetype)) {
         return cb(null, false)
     }
-
-    const buffer = fs.readFileSync(file.path)
-    const type = await fileTypeFromBuffer(buffer)
-    if (!type || !types.includes(type.mime)) {
-        return cb(null, false)
-    }
-
     return cb(null, true)
 }
 
