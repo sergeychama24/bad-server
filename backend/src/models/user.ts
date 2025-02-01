@@ -1,7 +1,12 @@
 /* eslint-disable no-param-reassign */
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
-import mongoose, { Document, HydratedDocument, Model, Types } from 'mongoose'
+import mongoose, {
+    Document,
+    HydratedDocument,
+    Model,
+    Types
+} from 'mongoose'
 import validator from 'validator'
 import md5 from 'md5'
 
@@ -14,6 +19,7 @@ export enum Role {
 }
 
 export interface IUser extends Document {
+    _id: Types.ObjectId
     name: string
     email: string
     password: string
@@ -133,6 +139,7 @@ userSchema.pre('save', async function hashingPassword(next) {
 userSchema.methods.generateAccessToken = function generateAccessToken() {
     const user = this
     // Создание accessToken токена возможно в контроллере авторизации
+    
     return jwt.sign(
         {
             _id: user._id.toString(),
@@ -150,9 +157,12 @@ userSchema.methods.generateRefreshToken =
     async function generateRefreshToken() {
         const user = this
         // Создание refresh токена возможно в контроллере авторизации/регистрации
+        if (!user._id) {
+            throw Error
+        }
+        
         const refreshToken = jwt.sign(
             {
-                _id: user._id.toString(),
             },
             REFRESH_TOKEN.secret,
             {
@@ -160,7 +170,7 @@ userSchema.methods.generateRefreshToken =
                 subject: user.id.toString(),
             }
         )
-
+        
         // Можно лучше: Создаем хеш refresh токена
         const rTknHash = crypto
             .createHmac('sha256', REFRESH_TOKEN.secret)
